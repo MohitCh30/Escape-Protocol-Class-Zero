@@ -1,6 +1,6 @@
 # 🎮 **Escape Protocol: Class Zero**
 
-###A narrative-driven moral choice game built for Aicade.io’s Internship Task
+### A narrative-driven moral choice game built for Aicade.io’s Internship Task
 
 ## 🚀 **Play the Game**
 
