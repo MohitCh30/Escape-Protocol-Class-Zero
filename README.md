@@ -1,13 +1,15 @@
-🎮 Escape Protocol: Class Zero
+🎮 **Escape Protocol: Class Zero**
+
 A narrative-driven moral choice game built for Aicade.io’s Internship Task
 
-🚀 Play the Game
+🚀 **Play the Game**
 
 https://play.aicade.io/rPhTtVYf1BTHhDjo
 
-📖 Project Background
+📖 **Project Background**
 
 This game was originally created as part of the Aicade Game Developer Internship Task.
+
 The assignment required us to:
 
 Start with an AI-generated base game.
@@ -24,7 +26,7 @@ Narrative choices leading to multiple endings.
 
 Polished transitions, visuals, and audio.
 
-✨ Features & Enhancements
+✨ **Features & Enhancements**
 
 70%+ of AI code rewritten (major refactor & new mechanics).
 
@@ -36,7 +38,7 @@ Scene transitions and smoother flow.
 
 Audio integration for immersion.
 
-🛠️ Struggles & Learning Journey
+🛠️ **Struggles & Learning Journey**
 
 This wasn’t an easy ride:
 
@@ -48,7 +50,7 @@ I almost gave up, even messaged the organizers about it. But instead of quitting
 
 This repo represents that growth and persistence more than just the final game.
 
-👤 Author’s Note
+👤**Author’s Note**
 
 This project is not yet at the level I originally envisioned. I had hoped to build a far more immersive, interactive experience — with deeper mechanics, branching dialogue, and a more polished narrative.
 
