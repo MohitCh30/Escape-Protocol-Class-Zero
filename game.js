@@ -1,4 +1,27 @@
-let moralityScore = 0;
+function typewriterEffect(scene, textObject, fullText, speed = 40, onComplete) {
+    let index = 0;
+    let skipped = false;
+
+    const skipHandler = () => {
+        skipped = true;
+        textObject.text = fullText;
+        scene.input.off('pointerdown', skipHandler);
+        if (onComplete) onComplete();
+    };
+    scene.input.on('pointerdown', skipHandler);
+
+    const type = () => {
+        if (skipped) return;
+        if (index < fullText.length) {
+            textObject.text += fullText[index++];
+            scene.time.delayedCall(speed, type);
+        } else {
+            scene.input.off('pointerdown', skipHandler);
+            if (onComplete) onComplete();
+        }
+    };
+    type();
+}
 
 class IntroScene extends Phaser.Scene {
     constructor() {
@@ -15,6 +38,9 @@ class IntroScene extends Phaser.Scene {
     }
 
     create() {
+        this.registry.set('moralityScore', 0);
+        this.registry.set('choices', []);
+
         this.children.removeAll();
         const bg = this.add.image(this.scale.width / 2, this.scale.height / 2, 'background');
         bg.setDisplaySize(this.scale.width, this.scale.height);
@@ -39,15 +65,7 @@ class IntroScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         const subtitleText = "The AI lockdown has begun.\nYour classmates are trapped.\nEvery choice determines their fate.";
-        let charIndex = 0;
-        const typeSubtitle = () => {
-            if (charIndex < subtitleText.length) {
-                subtitle.text += subtitleText[charIndex];
-                charIndex++;
-                this.time.delayedCall(50, typeSubtitle);
-            }
-        };
-        this.time.delayedCall(1500, typeSubtitle);
+        this.time.delayedCall(1500, () => typewriterEffect(this, subtitle, subtitleText, 50));
 
         const beginBtn = this.add.text(this.scale.width / 2, 500, "► BEGIN PROTOCOL", {
             font: "bold 36px Arial", fill: "#00ff00", backgroundColor: "rgba(0,0,0,0.9)",
@@ -68,6 +86,7 @@ class IntroScene extends Phaser.Scene {
         });
 
         try {
+            this.sound.stopAll();
             this.sound.add('background', { loop: true, volume: 0.3 }).play();
             this.sound.add('alarm', { loop: true, volume: 0.1 }).play();
         } catch (e) { console.log('Audio blocked by browser'); }
@@ -77,20 +96,24 @@ class IntroScene extends Phaser.Scene {
 }
 
 class ChoiceScene extends Phaser.Scene {
-    constructor(key, npcKey, scenario, choices) {
+    constructor(key, npcKey, scenario, choices, sectorTint = 0xffffff) {
         super({ key });
         this.npcKey = npcKey;
         this.scenario = scenario;
         this.choices = choices;
+        this.sectorTint = sectorTint;
     }
 
     create() {
+        this.choiceMade = false;
+
         const bg = this.add.image(this.scale.width / 2, this.scale.height / 2, 'background');
         bg.setDisplaySize(this.scale.width, this.scale.height);
+        bg.setTint(this.sectorTint);
         this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, 0.6);
 
         const npc = this.add.image(200, 400, this.npcKey);
-        npc.setScale(4.5);
+        npc.setDisplaySize(200, 280);
         npc.setTint(0x444444);
         npc.setAlpha(0.9);
 
@@ -110,20 +133,15 @@ class ChoiceScene extends Phaser.Scene {
             backgroundColor: "rgba(0,0,0,0.95)", padding: { x: 30, y: 25 }, stroke: "#ffffff", strokeThickness: 1
         }).setOrigin(0.5);
 
-        let scenarioIndex = 0;
-        const typeScenario = () => {
-            if (scenarioIndex < this.scenario.length) {
-                scenarioBox.text += this.scenario[scenarioIndex];
-                scenarioIndex++;
-                this.time.delayedCall(30, typeScenario);
-            } else {
+        this.time.delayedCall(800, () => {
+            typewriterEffect(this, scenarioBox, this.scenario, 30, () => {
                 this.time.delayedCall(500, () => this.showChoices());
-            }
-        };
-        this.time.delayedCall(800, typeScenario);
+            });
+        });
 
-        const moralityMeter = this.add.text(1100, 50, `Morality: ${moralityScore}`, {
-            font: "20px Arial", fill: moralityScore >= 0 ? "#00ff00" : "#ff0000",
+        const score = this.registry.get('moralityScore');
+        this.add.text(1100, 50, `Morality: ${score}`, {
+            font: "20px Arial", fill: score >= 0 ? "#00ff00" : "#ff0000",
             backgroundColor: "rgba(0,0,0,0.8)", padding: { x: 15, y: 10 }
         }).setOrigin(0.5);
 
@@ -155,10 +173,17 @@ class ChoiceScene extends Phaser.Scene {
             });
 
             choiceBtn.on('pointerdown', () => {
+                if (this.choiceMade) return;
+                this.choiceMade = true;
+                this.choiceButtons.forEach(btn => btn.disableInteractive());
+
                 try { this.sound.play('click'); } catch (e) { console.log('Audio blocked'); }
-                
-                moralityScore += choice.value;
-                
+
+                let score = this.registry.get('moralityScore');
+                this.registry.set('moralityScore', score + choice.value);
+                const currentChoices = this.registry.get('choices') || [];
+                this.registry.set('choices', [...currentChoices, { scene: this.scene.key, choice: choice.text, value: choice.value }]);
+
                 const feedbackColor = choice.value > 0 ? 0x00ff00 : choice.value < 0 ? 0xff0000 : 0xffff00;
                 this.cameras.main.flash(400, ...this.hexToRgb(feedbackColor), false);
                 
@@ -205,57 +230,69 @@ class EndingScene extends Phaser.Scene {
             targets: title, alpha: 1, scaleX: 1.2, scaleY: 1.2, duration: 1500, ease: 'Power2'
         });
 
-        const scoreColor = moralityScore >= 3 ? "#00ff00" : moralityScore <= -1 ? "#ff0000" : "#ffff00";
-        const scoreText = moralityScore >= 3 ? "HEROIC" : moralityScore <= -1 ? "RUTHLESS" : "NEUTRAL";
-        
-        this.add.text(this.scale.width / 2, 230, `Final Judgment: ${scoreText} (${moralityScore})`, {
+        const score = this.registry.get('moralityScore');
+        const scoreColor = score >= 3 ? "#00ff00" : score <= -2 ? "#ff0000" : "#ffff00";
+        const scoreText = score >= 3 ? "HEROIC" : score <= -2 ? "RUTHLESS" : "NEUTRAL";
+
+        this.add.text(this.scale.width / 2, 230, `Final Judgment: ${scoreText} (${score})`, {
             font: "32px Arial", fill: scoreColor, align: "center",
             stroke: "#000000", strokeThickness: 2
         }).setOrigin(0.5);
 
-        const messageText = this.add.text(this.scale.width / 2, 400, "", {
+        const messageText = this.add.text(this.scale.width / 2, 380, "", {
             font: "26px Arial", fill: "#ffffff", align: "center", wordWrap: { width: 1000 },
             backgroundColor: "rgba(0,0,0,0.95)", padding: { x: 35, y: 30 },
             stroke: "#ffffff", strokeThickness: 1
         }).setOrigin(0.5);
 
-        let currentChar = 0;
-        const typeText = () => {
-            if (currentChar < this.endingMessage.length) {
-                messageText.text += this.endingMessage[currentChar];
-                currentChar++;
-                this.time.delayedCall(40, typeText);
-            } else {
-                this.time.delayedCall(2500, () => {
-                    const restartBtn = this.add.text(this.scale.width / 2, 600, "► RESTART PROTOCOL", {
-                        font: "bold 30px Arial", fill: "#00ff00", backgroundColor: "rgba(0,0,0,0.95)",
-                        padding: { x: 35, y: 18 }, stroke: "#00ff00", strokeThickness: 2
-                    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0);
+        this.time.delayedCall(2000, () => {
+            typewriterEffect(this, messageText, this.endingMessage, 40, () => {
+                this.time.delayedCall(1000, () => this.showRecapAndRestart());
+            });
+        });
 
-                    this.tweens.add({
-                        targets: restartBtn, alpha: 1, scaleX: 1.1, scaleY: 1.1,
-                        duration: 800, ease: 'Back.easeOut'
-                    });
-
-                    this.tweens.add({
-                        targets: restartBtn, scaleX: 1.15, scaleY: 1.15, duration: 1000,
-                        yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
-                    });
-
-                    restartBtn.on('pointerover', () => restartBtn.setStyle({ fill: '#000000', backgroundColor: 'rgba(0,255,0,0.95)' }));
-                    restartBtn.on('pointerout', () => restartBtn.setStyle({ fill: '#00ff00', backgroundColor: 'rgba(0,0,0,0.95)' }));
-                    restartBtn.on('pointerdown', () => {
-                        try { this.sound.play('click'); } catch (e) { console.log('Audio blocked'); }
-                        moralityScore = 0;
-                        this.cameras.main.fadeOut(800, 0, 0, 0);
-                        this.time.delayedCall(800, () => this.scene.start('IntroScene'));
-                    });
-                });
-            }
-        };
-        
-        this.time.delayedCall(2000, typeText);
         this.cameras.main.fadeIn(1000, 0, 0, 0);
+    }
+
+    showRecapAndRestart() {
+        const choices = this.registry.get('choices') || [];
+        if (choices.length > 0) {
+            const recapLines = choices.map(c => {
+                const emoji = c.value > 0 ? '✅' : c.value < 0 ? '❌' : '⚠';
+                return `${emoji} ${c.scene.replace('Scene', '')}: ${c.choice}`;
+            });
+            this.add.text(this.scale.width / 2, 530, recapLines.join('\n'), {
+                font: "18px Arial", fill: "#cccccc", align: "center",
+                backgroundColor: "rgba(0,0,0,0.8)", padding: { x: 20, y: 12 }
+            }).setOrigin(0.5);
+        }
+
+        this.time.delayedCall(1500, () => {
+            const restartBtn = this.add.text(this.scale.width / 2, choices.length > 0 ? 650 : 600, "► RESTART PROTOCOL", {
+                font: "bold 30px Arial", fill: "#00ff00", backgroundColor: "rgba(0,0,0,0.95)",
+                padding: { x: 35, y: 18 }, stroke: "#00ff00", strokeThickness: 2
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0);
+
+            this.tweens.add({
+                targets: restartBtn, alpha: 1, scaleX: 1.1, scaleY: 1.1,
+                duration: 800, ease: 'Back.easeOut'
+            });
+
+            this.tweens.add({
+                targets: restartBtn, scaleX: 1.15, scaleY: 1.15, duration: 1000,
+                yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+            });
+
+            restartBtn.on('pointerover', () => restartBtn.setStyle({ fill: '#000000', backgroundColor: 'rgba(0,255,0,0.95)' }));
+            restartBtn.on('pointerout', () => restartBtn.setStyle({ fill: '#00ff00', backgroundColor: 'rgba(0,0,0,0.95)' }));
+            restartBtn.on('pointerdown', () => {
+                try { this.sound.play('click'); } catch (e) { console.log('Audio blocked'); }
+                this.registry.set('moralityScore', 0);
+                this.registry.set('choices', []);
+                this.cameras.main.fadeOut(800, 0, 0, 0);
+                this.time.delayedCall(800, () => this.scene.start('IntroScene'));
+            });
+        });
     }
 }
 
@@ -265,9 +302,10 @@ class EndingRouter extends Phaser.Scene {
     }
 
     create() {
-        if (moralityScore >= 3) {
+        const score = this.registry.get('moralityScore');
+        if (score >= 3) {
             this.scene.start('HeroEnding');
-        } else if (moralityScore <= -1) {
+        } else if (score <= -2) {
             this.scene.start('OutcastEnding');
         } else {
             this.scene.start('NeutralEnding');
@@ -296,7 +334,8 @@ const scenes = [
                 value: -1, color: '#ff0000', nextScene: 'AdvikScene',
                 feedback: 'Her terrified scream echoes as the drones converge on her location.'
             }
-        ]
+        ],
+        0xff6666
     ),
 
     new ChoiceScene('AdvikScene', 'npcAdvik', 
@@ -317,7 +356,8 @@ const scenes = [
                 value: -1, color: '#ff0000', nextScene: 'TanyaScene',
                 feedback: 'The security response teams rush toward the distraction you created.'
             }
-        ]
+        ],
+        0x6666ff
     ),
 
     new ChoiceScene('TanyaScene', 'npcTanya', 
@@ -338,7 +378,8 @@ const scenes = [
                 value: -1, color: '#ff0000', nextScene: 'ChapsScene',
                 feedback: 'Armed drones storm the room as you slip away in the chaos.'
             }
-        ]
+        ],
+        0x66ff66
     ),
 
     new ChoiceScene('ChapsScene', 'npcChaps', 
@@ -359,7 +400,8 @@ const scenes = [
                 value: -1, color: '#ff0000', nextScene: 'EndingRouter',
                 feedback: 'His cries for help mask your escape as hostiles investigate the sound.'
             }
-        ]
+        ],
+        0xff8844
     ),
 
     EndingRouter,
@@ -391,7 +433,7 @@ const config = {
 
 window.addEventListener('DOMContentLoaded', () => {
     if (typeof _CONFIG === 'undefined') {
-        console.error("Aicade _CONFIG not found. Is config.json loaded?");
+        console.error("Aicade _CONFIG not found. Is config.js loaded?");
         return;
     }
     config.parent = 'game-container';
