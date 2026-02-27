@@ -6,7 +6,7 @@
 
 ## 🚀 **Play the Game**
 
-https://play.aicade.io/rPhTtVYf1BTHhDjo
+http://mohitchdev.me/Escape-Protocol-Class-Zero/
 
 ## 📖 **Project Background**
 
