@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Dark background -->
+  <rect width="32" height="32" fill="#0a0a0a"/>
+  <!-- Skull dome -->
+  <ellipse cx="16" cy="13" rx="9" ry="9" fill="#111122" stroke="#00cc44" stroke-width="0.8"/>
+  <!-- Eye sockets (dark) -->
+  <ellipse cx="12" cy="12" rx="2.8" ry="3.2" fill="#000000"/>
+  <ellipse cx="20" cy="12" rx="2.8" ry="3.2" fill="#000000"/>
+  <!-- Glowing green eyes -->
+  <ellipse cx="12" cy="12" rx="2" ry="2.4" fill="#00ff44" opacity="0.95"/>
+  <ellipse cx="20" cy="12" rx="2" ry="2.4" fill="#00ff44" opacity="0.95"/>
+  <!-- Eye glow highlights -->
+  <ellipse cx="11.5" cy="11.2" rx="0.7" ry="0.9" fill="#ccffcc" opacity="0.8"/>
+  <ellipse cx="19.5" cy="11.2" rx="0.7" ry="0.9" fill="#ccffcc" opacity="0.8"/>
+  <!-- Nasal cavity -->
+  <path d="M15 16 L16 18 L17 16 Z" fill="#000000"/>
+  <!-- Jaw -->
+  <path d="M8 19 Q8 24 16 24 Q24 24 24 19" fill="#111122" stroke="#00cc44" stroke-width="0.6"/>
+  <!-- Teeth -->
+  <rect x="12.5" y="21" width="2" height="2.5" fill="#888888" rx="0.3"/>
+  <rect x="15" y="21" width="2" height="2.5" fill="#888888" rx="0.3"/>
+  <rect x="17.5" y="21" width="2" height="2.5" fill="#888888" rx="0.3"/>
+  <!-- Circuit line decorations -->
+  <line x1="3" y1="29" x2="29" y2="29" stroke="#00ff44" stroke-width="0.5" opacity="0.4"/>
+  <line x1="6" y1="31" x2="26" y2="31" stroke="#00ff44" stroke-width="0.3" opacity="0.2"/>
+</svg>

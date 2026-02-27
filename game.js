@@ -221,8 +221,8 @@ class EndingScene extends Phaser.Scene {
         bg.setTint(this.endingColor);
         this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, 0.75);
 
-        const title = this.add.text(this.scale.width / 2, 150, this.endingTitle, {
-            font: "bold 58px Arial", fill: "#ffffff", align: "center",
+        const title = this.add.text(this.scale.width / 2, 105, this.endingTitle, {
+            font: "bold 44px Arial", fill: "#ffffff", align: "center",
             stroke: "#000000", strokeThickness: 5
         }).setOrigin(0.5).setAlpha(0);
 
@@ -234,14 +234,22 @@ class EndingScene extends Phaser.Scene {
         const scoreColor = score >= 3 ? "#00ff00" : score <= -2 ? "#ff0000" : "#ffff00";
         const scoreText = score >= 3 ? "HEROIC" : score <= -2 ? "RUTHLESS" : "NEUTRAL";
 
-        this.add.text(this.scale.width / 2, 230, `Final Judgment: ${scoreText} (${score})`, {
-            font: "32px Arial", fill: scoreColor, align: "center",
+        this.add.text(this.scale.width / 2, 182, `Final Judgment: ${scoreText} (${score})`, {
+            font: "26px Arial", fill: scoreColor, align: "center",
             stroke: "#000000", strokeThickness: 2
         }).setOrigin(0.5);
 
-        const messageText = this.add.text(this.scale.width / 2, 380, "", {
-            font: "26px Arial", fill: "#ffffff", align: "center", wordWrap: { width: 1000 },
-            backgroundColor: "rgba(0,0,0,0.95)", padding: { x: 35, y: 30 },
+        const choices = this.registry.get('choices') || [];
+        const savedCount = choices.filter(c => c.value > 0).length;
+        const savedColor = savedCount >= 3 ? "#00ff00" : savedCount >= 2 ? "#ffff00" : "#ff6666";
+        this.add.text(this.scale.width / 2, 225, `You Saved: ${savedCount}/4 classmates`, {
+            font: "bold 22px Arial", fill: savedColor, align: "center",
+            stroke: "#000000", strokeThickness: 2
+        }).setOrigin(0.5);
+
+        const messageText = this.add.text(this.scale.width / 2, 375, "", {
+            font: "20px Arial", fill: "#ffffff", align: "center", wordWrap: { width: 920 },
+            backgroundColor: "rgba(0,0,0,0.95)", padding: { x: 25, y: 12 },
             stroke: "#ffffff", strokeThickness: 1
         }).setOrigin(0.5);
 
@@ -261,14 +269,14 @@ class EndingScene extends Phaser.Scene {
                 const emoji = c.value > 0 ? '✅' : c.value < 0 ? '❌' : '⚠';
                 return `${emoji} ${c.scene.replace('Scene', '')}: ${c.choice}`;
             });
-            this.add.text(this.scale.width / 2, 530, recapLines.join('\n'), {
-                font: "18px Arial", fill: "#cccccc", align: "center",
-                backgroundColor: "rgba(0,0,0,0.8)", padding: { x: 20, y: 12 }
+            this.add.text(this.scale.width / 2, 568, recapLines.join('\n'), {
+                font: "16px Arial", fill: "#cccccc", align: "center",
+                backgroundColor: "rgba(0,0,0,0.8)", padding: { x: 20, y: 10 }
             }).setOrigin(0.5);
         }
 
         this.time.delayedCall(1500, () => {
-            const restartBtn = this.add.text(this.scale.width / 2, choices.length > 0 ? 650 : 600, "► RESTART PROTOCOL", {
+            const restartBtn = this.add.text(this.scale.width / 2, choices.length > 0 ? 665 : 620, "► RESTART PROTOCOL", {
                 font: "bold 30px Arial", fill: "#00ff00", backgroundColor: "rgba(0,0,0,0.95)",
                 padding: { x: 35, y: 18 }, stroke: "#00ff00", strokeThickness: 2
             }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0);
