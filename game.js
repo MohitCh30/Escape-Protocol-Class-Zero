@@ -23,12 +23,36 @@ function typewriterEffect(scene, textObject, fullText, speed = 40, onComplete) {
     type();
 }
 
+// Phaser throws if a sound key isn't in the cache (e.g. its file failed to
+// load), so skip playback instead of crashing the scene.
+function playSound(scene, key, config) {
+    if (scene.cache.audio.exists(key)) {
+        scene.sound.play(key, config);
+    }
+}
+
 class IntroScene extends Phaser.Scene {
     constructor() {
         super({ key: 'IntroScene' });
     }
 
     preload() {
+        // Progress bar: the background music alone is ~4 MB, so without it the
+        // page sits on a black screen while assets download.
+        const barWidth = 400;
+        const barX = this.scale.width / 2 - barWidth / 2;
+        const barY = this.scale.height / 2;
+        this.add.text(this.scale.width / 2, barY - 30, "INITIALIZING PROTOCOL...", {
+            font: "20px Arial", fill: "#00ff00"
+        }).setOrigin(0.5);
+        const bar = this.add.graphics();
+        this.load.on('progress', (value) => {
+            bar.clear();
+            bar.lineStyle(1, 0x00ff00).strokeRect(barX, barY, barWidth, 12);
+            bar.fillStyle(0x00ff00).fillRect(barX, barY, barWidth * value, 12);
+        });
+        this.load.on('loaderror', (file) => console.warn(`Failed to load asset "${file.key}" from ${file.url}`));
+
         for (const key in _CONFIG.imageLoader) {
             this.load.image(key, _CONFIG.imageLoader[key]);
         }
@@ -80,16 +104,15 @@ class IntroScene extends Phaser.Scene {
         beginBtn.on('pointerover', () => beginBtn.setStyle({ fill: '#000000', backgroundColor: 'rgba(0,255,0,0.9)' }));
         beginBtn.on('pointerout', () => beginBtn.setStyle({ fill: '#00ff00', backgroundColor: 'rgba(0,0,0,0.9)' }));
         beginBtn.on('pointerdown', () => {
-            try { this.sound.play('click'); } catch (e) { console.log('Audio blocked'); }
+            playSound(this, 'click');
             this.cameras.main.fadeOut(500, 0, 0, 0);
             this.time.delayedCall(500, () => this.scene.start('PrishaScene'));
         });
 
-        try {
-            this.sound.stopAll();
-            this.sound.add('background', { loop: true, volume: 0.3 }).play();
-            this.sound.add('alarm', { loop: true, volume: 0.1 }).play();
-        } catch (e) { console.log('Audio blocked by browser'); }
+        // removeAll (not stopAll) so restarts don't pile up stopped sound instances.
+        this.sound.removeAll();
+        playSound(this, 'music', { loop: true, volume: 0.3 });
+        playSound(this, 'alarm', { loop: true, volume: 0.1 });
 
         this.cameras.main.fadeIn(1000, 0, 0, 0);
     }
@@ -177,7 +200,7 @@ class ChoiceScene extends Phaser.Scene {
                 this.choiceMade = true;
                 this.choiceButtons.forEach(btn => btn.disableInteractive());
 
-                try { this.sound.play('click'); } catch (e) { console.log('Audio blocked'); }
+                playSound(this, 'click');
 
                 let score = this.registry.get('moralityScore');
                 this.registry.set('moralityScore', score + choice.value);
@@ -294,7 +317,7 @@ class EndingScene extends Phaser.Scene {
             restartBtn.on('pointerover', () => restartBtn.setStyle({ fill: '#000000', backgroundColor: 'rgba(0,255,0,0.95)' }));
             restartBtn.on('pointerout', () => restartBtn.setStyle({ fill: '#00ff00', backgroundColor: 'rgba(0,0,0,0.95)' }));
             restartBtn.on('pointerdown', () => {
-                try { this.sound.play('click'); } catch (e) { console.log('Audio blocked'); }
+                playSound(this, 'click');
                 this.registry.set('moralityScore', 0);
                 this.registry.set('choices', []);
                 this.cameras.main.fadeOut(800, 0, 0, 0);

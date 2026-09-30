@@ -6,7 +6,7 @@
 
 ## 🚀 **Play the Game**
 
-http://mohitchdev.me/Escape-Protocol-Class-Zero/
+**https://mohitchdev.me/**
 
 ## 📖 **Project Background**
 
@@ -42,8 +42,8 @@ Audio integration for immersion.
 
 ## 🛠️ **Tech Stack**
 
-- **Phaser 3.80.1** — Game framework for rendering, input, audio, and scene management
-- **Aicade.io Platform** — Hosting, asset delivery, and config (`_CONFIG`) conventions
+- **Phaser 3.80.1** — Game framework for rendering, input, audio, and scene management (self-hosted in `lib/`)
+- **GitHub Pages** — Hosting on the custom domain [mohitchdev.me](https://mohitchdev.me/) (originally hosted on Aicade.io, which has shut down)
 - **JavaScript ES6+** — All game logic in a single `game.js` file (no bundlers, no modules)
 
 ## 🎲 **Game Design**
@@ -59,9 +59,24 @@ The morality system is at the heart of Escape Protocol: Class Zero:
 
 ## ⚙️ **How It Works**
 
-- `config.js` defines `const _CONFIG` — an Aicade.io convention that feeds asset URLs (images, audio) to the game at runtime. External URLs must not be changed.
+- `config.js` defines `const _CONFIG` — the asset manifest format inherited from Aicade.io. Images are served from `assets/`; the music and click sound still come from Aicade's S3 library, and the game keeps running silently if they go away.
 - `game.js` contains all scene logic in a single file: `IntroScene`, four `ChoiceScene` instances, `EndingRouter`, and three `EndingScene` instances.
 - Morality state is managed via Phaser's built-in registry (`this.registry`), avoiding global variable pollution.
+
+## 💻 **Run Locally**
+
+Phaser loads assets over HTTP, so opening `index.html` straight from disk won't work. Serve the folder instead:
+
+```bash
+python3 -m http.server 8000
+# then open http://localhost:8000
+```
+
+## 🌐 **Deployment**
+
+- GitHub Pages builds from the root of `main`. `.nojekyll` makes Pages serve the files as-is.
+- `CNAME` points the site at `mohitchdev.me`, so the game is served from the domain root.
+- The game used to live at `mohitchdev.me/Escape-Protocol-Class-Zero/`. `404.html` forwards any of those old links to the root.
 
 ## 🛠️ **Struggles & Learning Journey**
 

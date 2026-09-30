@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>404 · Escape Protocol: Class Zero</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <script>
+        // The game used to be served at /Escape-Protocol-Class-Zero/ (a project
+        // site under the user site's custom domain). This repo now owns the custom
+        // domain, so the game lives at the root. GitHub Pages can't do server-side
+        // redirects, so forward old links here instead of dead-ending on a 404.
+        (function () {
+            var legacyPrefix = /^\/escape-protocol-class-zero(?=\/|$)/i;
+            var path = window.location.pathname;
+            if (legacyPrefix.test(path)) {
+                var target = path.replace(legacyPrefix, '') || '/';
+                window.location.replace(target + window.location.search + window.location.hash);
+            }
+        })();
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+            text-align: center;
+        }
+        h1 {
+            color: #ff0000;
+            font-size: 72px;
+            text-shadow: 0 0 12px rgba(255, 0, 0, 0.6);
+        }
+        .subtitle {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 8px 0 16px;
+        }
+        .message {
+            color: #cccccc;
+            margin-bottom: 32px;
+        }
+        a {
+            display: inline-block;
+            color: #00ff00;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+            border: 2px solid #00ff00;
+            padding: 14px 28px;
+            background: rgba(0, 0, 0, 0.9);
+        }
+        a:hover,
+        a:focus-visible {
+            color: #000;
+            background: #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>404</h1>
+        <p class="subtitle">SECTOR NOT FOUND</p>
+        <p class="message">This corridor doesn't exist. The lockdown is still active elsewhere.</p>
+        <a href="/">► RETURN TO PROTOCOL</a>
+    </main>
+</body>
+</html>
